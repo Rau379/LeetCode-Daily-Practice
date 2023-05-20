@@ -1,1 +1,218 @@
+399. Evaluate Division
+
+// Problem Statement
+You are given an array of variable pairs equations and an array of real numbers values, where equations[i] = [Ai, Bi] and values[i] represent the equation Ai / Bi = values[i]. Each Ai or Bi is a string that represents a single variable.
+
+You are also given some queries, where queries[j] = [Cj, Dj] represents the jth query where you must find the answer for Cj / Dj = ?.
+
+Return the answers to all queries. If a single answer cannot be determined, return -1.0.
+
+Note: The input is always valid. You may assume that evaluating the queries will not result in division by zero and that there is no contradiction.
+
+ 
+
+Example 1:
+
+Input: equations = [["a","b"],["b","c"]], values = [2.0,3.0], queries = [["a","c"],["b","a"],["a","e"],["a","a"],["x","x"]]
+Output: [6.00000,0.50000,-1.00000,1.00000,-1.00000]
+Explanation: 
+Given: a / b = 2.0, b / c = 3.0
+queries are: a / c = ?, b / a = ?, a / e = ?, a / a = ?, x / x = ?
+return: [6.0, 0.5, -1.0, 1.0, -1.0 ]
+Example 2:
+
+Input: equations = [["a","b"],["b","c"],["bc","cd"]], values = [1.5,2.5,5.0], queries = [["a","c"],["c","b"],["bc","cd"],["cd","bc"]]
+Output: [3.75000,0.40000,5.00000,0.20000]
+
+// Solution
+class Solution {
+public:
+bool dfs(string u, string v, unordered_set<string>vis, double curr, vector<double>&res,map<string, vector<pair<string, double>>>&mp )
+{
+    if(vis.find(u)!=vis.end()) return false;
+    vis.insert(u);
+    // now base case
+    if(u==v)
+    {
+        res.push_back(curr);
+        return true;
+    }
+    bool found=false;
+    for(auto it: mp[u])
+    {
+        found= dfs(it.first, v, vis, curr*it.second, res, mp );
+        if(found) return true;
+    }
+    return false;
+}
+    vector<double> calcEquation(vector<vector<string>>& equations, vector<double>& values, vector<vector<string>>& queries) {
+        vector<double>res;
+        //equations.size()==values.size()
+        // make a graph
+        map<string, vector<pair<string, double>>>mp;
+        for(int i=0; i<equations.size(); i++)
+        {
+            mp[equations[i][0]].push_back({equations[i][1], values[i]});
+            mp[equations[i][1]].push_back({equations[i][0], (double)1/values[i]});
+        }
+
+        // traverse the queries
+        for(auto it: queries)
+        {
+            string u= it[0];
+            string v= it[1];
+            // now find in the map
+            if(mp.find(u)==mp.end() || mp.find(v)==mp.end())
+            {
+                res.push_back(-1.0);
+            }
+            else
+            {
+                unordered_set<string>vis;
+                if(!dfs(u, v, vis, 1.0, res, mp)){
+                    res.push_back(-1);
+                }
+
+             }
+
+        }
+      return res;
+    }
+};
+61. Rotate List
+
+// Problem Statement
+Given the head of a linked list, rotate the list to the right by k places.
+
+Example 1:
+
+
+Input: head = [1,2,3,4,5], k = 2
+Output: [4,5,1,2,3]
+
+// Solution
+/**
+ * Definition for singly-linked list.
+ * struct ListNode {
+ *     int val;
+ *     ListNode *next;
+ *     ListNode() : val(0), next(nullptr) {}
+ *     ListNode(int x) : val(x), next(nullptr) {}
+ *     ListNode(int x, ListNode *next) : val(x), next(next) {}
+ * };
+ */
+class Solution {
+public:
+//through iterative way
+   
+  
+    ListNode* rotateRight(ListNode* head, int k) {
+         int len=0;
+         if(head==NULL || head->next==NULL || k==0) return head;
+         ListNode*temp=head;
+         while(temp)
+         {
+             len++;
+             temp=temp->next;
+         }
+         k= k%len;
+         k= len-k;
+         if(k==len) return head;
+         temp=head;
+         while(--k)
+         {
+          
+             temp=temp->next;
+             //k--;
+         }
+         cout<<endl;
+        // cout<<k<<endl;
+         cout<<temp->val;
+         ListNode *forward= temp->next;
+         temp->next=NULL;
+         ListNode *curr=forward;
+        while (curr->next)curr=curr->next;
+
+         curr->next=head;
+         return forward;
+
+     
+
+    }
+};
+
+725. Split Linked List in Parts
+// Problem Statement
+Given the head of a singly linked list and an integer k, split the linked list into k consecutive linked list parts.
+
+The length of each part should be as equal as possible: no two parts should have a size differing by more than one. This may lead to some parts being null.
+
+The parts should be in the order of occurrence in the input list, and parts occurring earlier should always have a size greater than or equal to parts occurring later.
+
+Return an array of the k parts.
+
+ 
+
+Example 1:
+
+
+Input: head = [1,2,3], k = 5
+Output: [[1],[2],[3],[],[]]
+Explanation:
+The first element output[0] has output[0].val = 1, output[0].next = null.
+The last element output[4] is null, but its string representation as a ListNode is [].
+
+
+
+
+// Solution
+/**
+ * Definition for singly-linked list.
+ * struct ListNode {
+ *     int val;
+ *     ListNode *next;
+ *     ListNode() : val(0), next(nullptr) {}
+ *     ListNode(int x) : val(x), next(nullptr) {}
+ *     ListNode(int x, ListNode *next) : val(x), next(next) {}
+ * };
+ */
+class Solution {
+public:
+    vector<ListNode*> splitListToParts(ListNode* head, int k) {
+       int len=0;
+       ListNode*temp=head;
+       //calculate the length
+       while(temp)
+       {
+           len++;
+           temp=temp->next;
+       } 
+       vector<ListNode*>res;
+       int width= len/k, rem=len%k;
+       while(k--)
+       {
+           int groupsize=width;
+           if(rem>0)
+           {
+               groupsize++;
+               rem--;
+           }
+           ListNode *store=head;
+           ListNode *prev=NULL;
+           while(groupsize-- && head)
+           {
+               prev=head;
+               head=head->next;
+           }
+           if(prev)prev->next=NULL;
+           res.push_back(store);
+       }
+       return res;
+    }
+};
+
+
+ 
+
+
 
